@@ -60,13 +60,11 @@ export default function Generate() {
       } else {
         batch.set(userDocRef, { flashcardSets: [{ name: setName }] })
       }
-
       const setDocRef = doc(collection(userDocRef, 'flashcardSets'), setName)
       batch.set(setDocRef, { flashcards })
 
       await batch.commit()
-
-      alert('Flashcards saved successfully!')
+      alert('Flashcards saved successfully!' + user.id)
       handleCloseDialog()
       setSetName('')
     } catch (error) {
