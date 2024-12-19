@@ -64,7 +64,8 @@ export default function Generate() {
       batch.set(setDocRef, { flashcards })
 
       await batch.commit()
-      alert('Flashcards saved successfully!' + user.id)
+
+      alert('Flashcards saved successfully!')
       handleCloseDialog()
       setSetName('')
     } catch (error) {
