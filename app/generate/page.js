@@ -31,6 +31,8 @@ addDoc,
 writeBatch
 } from 'firebase/firestore'
 import { useUser } from '@clerk/nextjs'
+import { signInWithCustomToken } from 'firebase/auth';
+import { auth } from '/firebase'; // Adjust the path as necessary
 
 export default function Generate() {
   const { isLoaded, isSignedIn, user } = useUser()
@@ -41,11 +43,43 @@ export default function Generate() {
   const handleOpenDialog = () => setDialogOpen(true)
   const handleCloseDialog = () => setDialogOpen(false)
 
+  const authenticateWithFirebase = async(firebaseCustomToken) => {
+    try
+    {
+      await signInWithCustomToken(auth, firebaseCustomToken)
+      console.log("User authenticated with firebase")
+    }
+    catch(error)
+    {
+      console.error("Error signing in with firebase custom token: ", error.code, error.message)
+    }
+  }
+
+  const getToken = async(user) => {
+    const userId = user.id
+    const response = await fetch('/api/firebase_data_stuff', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({clerkUserId: userId})
+    })
+    const data = await response.json()
+    if(data.firebaseCustomToken)
+    {
+      const firebaseToken = data.firebaseCustomToken;
+      await authenticateWithFirebase(firebaseToken)
+    }
+    return
+  } 
+
   const saveFlashcards = async () => {
     if (!setName.trim()) {
       alert('Please enter a name for your flashcard set.')
       return
     }
+
+    await getToken(user)
 
     try {
       const userDocRef = doc(collection(db, 'users'), user.id)

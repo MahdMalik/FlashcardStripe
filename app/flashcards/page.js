@@ -19,6 +19,8 @@ import {
 } from '@mui/material'
 
 import { useUser } from '@clerk/nextjs'
+import { signInWithCustomToken } from 'firebase/auth';
+import { auth } from '/firebase'; // Adjust the path as necessary
 import { useRouter } from 'next/navigation'
 
 import {db} from '/firebase'
@@ -39,6 +41,36 @@ export default function Flashcards() {
   const [flashcards, setFlashcards] = useState([])
   const router = useRouter()
 
+  const authenticateWithFirebase = async(firebaseCustomToken) => {
+      try
+      {
+        await signInWithCustomToken(auth, firebaseCustomToken)
+        console.log("User authenticated with firebase")
+      }
+      catch(error)
+      {
+        console.error("Error signing in with firebase custom token: ", error.code, error.message)
+      }
+    }
+
+  const getToken = async(user) => {
+    const userId = user.id
+    const response = await fetch('/api/firebase_data_stuff', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({clerkUserId: userId})
+    })
+    const data = await response.json()
+    if(data.firebaseCustomToken)
+    {
+      const firebaseToken = data.firebaseCustomToken;
+      await authenticateWithFirebase(firebaseToken)
+    }
+    return
+  }
+
   const handleCardClick = (id) => {
     router.push(`/flashcard?id=${id}`)
   }
@@ -46,6 +78,7 @@ export default function Flashcards() {
   useEffect(() => {
     async function getFlashcards() {
       if (!user) return
+      await getToken(user)
       const docRef = doc(collection(db, 'users'), user.id)
       const docSnap = await getDoc(docRef)
       if (docSnap.exists()) {
