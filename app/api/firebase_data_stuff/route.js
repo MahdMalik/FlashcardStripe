@@ -1,4 +1,4 @@
-import { admin } from '/firebaseAdmin.js'
+import { admin } from './firebaseAdmin.js'
 // POST method to handle generating the Firebase custom token
 // Initialize Firebase Admin SDK if it hasn't been initialized already
 export async function POST(request) {
